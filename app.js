@@ -263,6 +263,40 @@ window.connectYouTube = function () {
     window.location.href = `/api/youtube-auth?uid=${uid}`;
 };
 
+// ===== PAGE GATE — locks Videos + AI Studio until YouTube is connected =====
+const GATED_PAGES = ['page-videos', 'page-ai-studio'];
+
+window.gatePages = function () {
+    GATED_PAGES.forEach(pageId => {
+        const page = document.getElementById(pageId);
+        if (!page || page.querySelector('.page-gate')) return;
+        page.classList.add('page-gated');
+        const isAI = pageId === 'page-ai-studio';
+        const gate = document.createElement('div');
+        gate.className = 'page-gate';
+        gate.innerHTML = `
+            <div class="page-gate-card">
+                <div class="page-gate-icon">${isAI ? '🤖' : '📊'}</div>
+                <h2>${isAI ? 'Connect YouTube to unlock AI Studio' : 'Connect YouTube to see Video Analytics'}</h2>
+                <p>${isAI ? 'AI-powered video ideas, trend analysis, and content recommendations are personalised to your channel.' : 'Your video performance charts, rankings, and detailed analytics will appear here once your channel is connected.'}</p>
+                <button class="page-gate-btn" onclick="document.querySelector('[data-page=social]').click()">
+                    Connect YouTube →
+                </button>
+            </div>`;
+        page.appendChild(gate);
+    });
+};
+
+window.ungatePages = function () {
+    GATED_PAGES.forEach(pageId => {
+        const page = document.getElementById(pageId);
+        if (!page) return;
+        page.classList.remove('page-gated');
+        const gate = page.querySelector('.page-gate');
+        if (gate) gate.remove();
+    });
+};
+
 // ===== INSTAGRAM + TIKTOK URL PASTE =====
 function initUrlPasteConnections(uid, db) {
     function extractHandle(url, platform) {
@@ -367,6 +401,9 @@ function initUrlPasteConnections(uid, db) {
 
 // ===== SOCIAL PLATFORM CONNECTIONS =====
 function initSocialConnections(uid, db) {
+    // Gate Videos + AI Studio immediately; ungated only if YouTube token confirmed
+    if (window.gatePages) window.gatePages();
+
     // Helper: format large numbers (1290000 -> 1.29M)
     function fmt(n) {
         if (!n) return '—';
@@ -462,6 +499,8 @@ function initSocialConnections(uid, db) {
             if (chanOpt && data.channelName) chanOpt.textContent = data.channelName;
             // Populate overview KPI cards
             updateOverviewKPIs(data);
+            // Ungate Videos + AI Studio
+            if (window.ungatePages) window.ungatePages();
         } else if (platform === 'instagram') {
             setText('ig-username', data.username ? `@${data.username}` : 'Instagram');
             setText('ig-followers', fmt(data.followersCount));
@@ -529,7 +568,11 @@ function initSocialConnections(uid, db) {
         }
         if (window.lucide) lucide.createIcons();
         // Show connect prompt on overview for unconnected YouTube
-        if (platform === 'youtube') showConnectPrompt();
+        if (platform === 'youtube') {
+            showConnectPrompt();
+            // Gate Videos + AI Studio
+            if (window.gatePages) window.gatePages();
+        }
     }
 
     function platformPrefix(p) {

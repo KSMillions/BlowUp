@@ -803,6 +803,91 @@ body {
     opacity: 0.88;
 }
 
+/* ===== PAGE GATE (Videos + AI Studio — blocked when YouTube not connected) ===== */
+.page-gate {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    background: rgba(10, 13, 18, 0.82);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+}
+
+.page-gate-card {
+    background: var(--card-bg, #111419);
+    border: 1px solid rgba(245, 166, 35, 0.25);
+    border-radius: 24px;
+    padding: 56px 48px;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+    animation: gateIn 0.35s ease;
+}
+
+@keyframes gateIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.page-gate-icon {
+    font-size: 56px;
+    margin-bottom: 20px;
+}
+
+.page-gate-card h2 {
+    font-size: 24px;
+    font-weight: 900;
+    margin-bottom: 12px;
+}
+
+.page-gate-card p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 28px;
+}
+
+.page-gate-btn {
+    background: linear-gradient(135deg, #F5A623, #C8841A);
+    border: none;
+    color: #000;
+    font-size: 15px;
+    font-weight: 800;
+    padding: 15px 32px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.page-gate-btn:hover {
+    opacity: 0.88;
+}
+
+/* Blur the page content underneath */
+.page-gated>*:not(.page-header):not(.page-gate) {
+    filter: blur(4px);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Make pages position-relative so gate can overlay */
+.page {
+    position: relative;
+}
+
 /* ===== CONNECT BUTTON (platform cards — not connected state) ===== */
 .social-action-btn.connect-btn:not(.connected-btn) {
     background: rgba(255, 255, 255, 0.05);
