@@ -816,6 +816,85 @@ body {
     color: var(--gold);
 }
 
+/* ===== URL PASTE (Instagram / TikTok) ===== */
+.url-paste-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.url-paste-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.url-paste-input:focus {
+    border-color: var(--gold);
+}
+
+.url-paste-input::placeholder {
+    color: var(--text-muted);
+}
+
+.url-paste-save {
+    background: linear-gradient(135deg, var(--gold), #C8841A);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: #000;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+}
+
+.url-paste-save:hover {
+    opacity: 0.88;
+}
+
+.url-paste-save:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.url-paste-connected {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(57, 255, 20, 0.07);
+    border: 1px solid rgba(57, 255, 20, 0.2);
+    border-radius: 10px;
+    padding: 10px 14px;
+    gap: 10px;
+    margin-top: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #39FF14;
+}
+
+.url-paste-remove {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: color 0.2s;
+    white-space: nowrap;
+}
+
+.url-paste-remove:hover {
+    color: #FF4D4D;
+}
+
 @media (max-width: 600px) {
     .settings-drawer {
         width: 100%;

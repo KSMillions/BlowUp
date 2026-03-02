@@ -102,17 +102,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const plan = (profile.plan || 'free').toUpperCase();
         const parts = name.trim().split(' ');
         const initials = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+        // Derive a handle: use email prefix or name slugified
+        const user = firebase.auth().currentUser;
+        const handle = user?.email ? '@' + user.email.split('@')[0] : '@' + name.toLowerCase().replace(/\s+/g, '');
 
         // Topbar
         const nameEl = document.querySelector('.profile-name');
         const initialsEl = document.getElementById('avatarInitials');
         const planBadgeEl = document.getElementById('planBadge');
+        const handleEl = document.getElementById('profileHandle');
         if (nameEl) nameEl.textContent = name;
         if (initialsEl) initialsEl.textContent = initials;
+        if (handleEl) handleEl.textContent = handle;
         if (planBadgeEl) {
             planBadgeEl.textContent = plan;
             planBadgeEl.className = 'plan-badge plan-' + profile.plan;
         }
+
+        // Chatbot greeting
+        const greetEl = document.getElementById('chatGreeting');
+        if (greetEl) greetEl.textContent = `Hey ${parts[0]}!`;
 
         // Settings drawer
         const settingsAvatar = document.getElementById('settingsAvatar');
@@ -141,11 +150,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Read profile from Firestore on auth state change
     firebase.auth().onAuthStateChanged(function (user) {
         if (user) {
+            // Expose uid globally so connect buttons and URL-paste can use it
+            window._blowupUid = user.uid;
+            window._blowupDb = db;
+
             db.collection('users').doc(user.uid).get().then(snap => {
                 if (snap.exists) {
                     applyProfile(snap.data());
                 } else {
-                    // Fallback to Firebase Auth data (e.g. existing Google users)
                     applyProfile({
                         displayName: user.displayName || user.email.split('@')[0],
                         email: user.email,
@@ -204,7 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 await user.updateProfile({ displayName: newName });
-                // Re-read and apply
                 const snap = await db.collection('users').doc(user.uid).get();
                 if (snap.exists) applyProfile(snap.data());
                 settingsSaveMsg.textContent = '✓ Saved successfully';
@@ -235,11 +246,124 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (window.lucide) lucide.createIcons();
 
-    // Social connections init (needs auth user — called after auth state confirmed)
+    // Social connections init — waits for auth
     firebase.auth().onAuthStateChanged(function (user) {
-        if (user) initSocialConnections(user.uid, db);
+        if (user) {
+            initSocialConnections(user.uid, db);
+            initUrlPasteConnections(user.uid, db);
+        }
     });
 });
+
+// ===== YOUTUBE CONNECT — robust global function =====
+// Called from connect button click via event listener OR directly
+window.connectYouTube = function () {
+    const uid = window._blowupUid;
+    if (!uid) { alert('Please wait — loading your account...'); return; }
+    window.location.href = `/api/youtube-auth?uid=${uid}`;
+};
+
+// ===== INSTAGRAM + TIKTOK URL PASTE =====
+function initUrlPasteConnections(uid, db) {
+    function extractHandle(url, platform) {
+        try {
+            const u = new URL(url.trim());
+            let path = u.pathname.replace(/\/$/, '').split('/').filter(Boolean);
+            if (platform === 'instagram') return path[0] ? '@' + path[0].replace('@', '') : null;
+            if (platform === 'tiktok') return path[0] ? '@' + path[0].replace('@', '') : null;
+        } catch { return null; }
+    }
+
+    function setupPlatform(platform) {
+        const prefix = platform === 'instagram' ? 'ig' : 'tt';
+        const input = document.getElementById(`${prefix}-url-input`);
+        const saveBtn = document.getElementById(`${prefix}-save-btn`);
+        const urlGroup = document.getElementById(`${prefix}-url-group`);
+        const connectedBar = document.getElementById(`${prefix}-connected-bar`);
+        const connectedLabel = document.getElementById(`${prefix}-connected-label`);
+        const removeBtn = document.getElementById(`${prefix}-remove-btn`);
+        const statusEl = document.getElementById(`${prefix}-status`);
+        const nameEl = document.getElementById(prefix === 'ig' ? 'ig-username' : 'tt-displayname');
+
+        function showConnected(handle) {
+            if (urlGroup) urlGroup.style.display = 'none';
+            if (connectedBar) connectedBar.style.display = 'flex';
+            if (connectedLabel) connectedLabel.textContent = handle;
+            if (statusEl) {
+                statusEl.className = 'social-status connected';
+                statusEl.innerHTML = '<i data-lucide="check-circle" style="width:14px;height:14px"></i> Connected';
+            }
+            if (nameEl) nameEl.textContent = handle;
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function showDisconnected() {
+            if (urlGroup) urlGroup.style.display = 'flex';
+            if (connectedBar) connectedBar.style.display = 'none';
+            if (statusEl) {
+                statusEl.className = 'social-status';
+                statusEl.innerHTML = '<i data-lucide="link-2" style="width:14px;height:14px"></i> Not Connected';
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // Load saved handle from Firestore
+        db.collection('users').doc(uid).get().then(snap => {
+            const field = platform === 'instagram' ? 'instagramHandle' : 'tiktokHandle';
+            const handle = snap.exists && snap.data()[field];
+            if (handle) showConnected(handle);
+            else showDisconnected();
+        });
+
+        // Save button
+        if (saveBtn) {
+            saveBtn.addEventListener('click', async () => {
+                const url = input?.value?.trim();
+                if (!url) return;
+                const handle = extractHandle(url, platform);
+                if (!handle) {
+                    input.style.borderColor = '#FF4D4D';
+                    setTimeout(() => { input.style.borderColor = ''; }, 2000);
+                    return;
+                }
+                saveBtn.textContent = 'Saving...';
+                saveBtn.disabled = true;
+                const field = platform === 'instagram' ? 'instagramHandle' : 'tiktokHandle';
+                const urlField = platform === 'instagram' ? 'instagramUrl' : 'tiktokUrl';
+                await db.collection('users').doc(uid).update({
+                    [field]: handle,
+                    [urlField]: url,
+                    [`platforms.${platform}`]: true,
+                    updatedAt: new Date()
+                });
+                showConnected(handle);
+                saveBtn.textContent = 'Save';
+                saveBtn.disabled = false;
+            });
+        }
+
+        // Remove button
+        if (removeBtn) {
+            removeBtn.addEventListener('click', async () => {
+                const field = platform === 'instagram' ? 'instagramHandle' : 'tiktokHandle';
+                const urlField = platform === 'instagram' ? 'instagramUrl' : 'tiktokUrl';
+                await db.collection('users').doc(uid).update({
+                    [field]: firebase.firestore.FieldValue.delete(),
+                    [urlField]: firebase.firestore.FieldValue.delete(),
+                    [`platforms.${platform}`]: false,
+                    updatedAt: new Date()
+                });
+                if (input) input.value = '';
+                showDisconnected();
+            });
+        }
+    }
+
+    setupPlatform('instagram');
+    setupPlatform('tiktok');
+}
+
+
 
 // ===== SOCIAL PLATFORM CONNECTIONS =====
 function initSocialConnections(uid, db) {
@@ -287,7 +411,11 @@ function initSocialConnections(uid, db) {
                 db.collection('users').doc(uid).update({ [`platforms.${platform}`]: false });
                 setCardDisconnected(platform);
             } else {
-                window.location.href = `/api/${platform}-auth?uid=${uid}`;
+                if (platform === 'youtube') {
+                    window.connectYouTube();
+                } else {
+                    window.location.href = `/api/${platform}-auth?uid=${uid}`;
+                }
             }
         });
     });

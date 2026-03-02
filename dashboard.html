@@ -105,7 +105,7 @@
             <div class="topbar-right">
                 <div class="topbar-profile">
                     <span class="profile-name">Ghost Hlubi</span>
-                    <span class="profile-handle">@GhostHlubi</span>
+                    <span class="profile-handle" id="profileHandle">@creator</span>
                 </div>
                 <div class="profile-avatar" id="profileAvatar">
                     <span id="avatarInitials">GH</span>
@@ -488,9 +488,16 @@
                         </div>
                     </div>
                     <div class="social-chart"><canvas id="igMiniChart"></canvas></div>
-                    <button class="social-action-btn connect-btn" id="ig-btn" data-platform="instagram">
-                        Connect Instagram
-                    </button>
+                    <!-- URL paste UI -->
+                    <div class="url-paste-group" id="ig-url-group">
+                        <input type="url" id="ig-url-input" class="url-paste-input"
+                            placeholder="https://instagram.com/yourhandle">
+                        <button class="url-paste-save" id="ig-save-btn">Save</button>
+                    </div>
+                    <div class="url-paste-connected" id="ig-connected-bar" style="display:none">
+                        <span id="ig-connected-label">@handle</span>
+                        <button class="url-paste-remove" id="ig-remove-btn">✕ Remove</button>
+                    </div>
                 </div>
 
                 <!-- TikTok -->
@@ -522,9 +529,16 @@
                         </div>
                     </div>
                     <div class="social-chart"><canvas id="ttMiniChart"></canvas></div>
-                    <button class="social-action-btn connect-btn" id="tt-btn" data-platform="tiktok">
-                        Connect TikTok
-                    </button>
+                    <!-- URL paste UI -->
+                    <div class="url-paste-group" id="tt-url-group">
+                        <input type="url" id="tt-url-input" class="url-paste-input"
+                            placeholder="https://tiktok.com/@yourhandle">
+                        <button class="url-paste-save" id="tt-save-btn">Save</button>
+                    </div>
+                    <div class="url-paste-connected" id="tt-connected-bar" style="display:none">
+                        <span id="tt-connected-label">@handle</span>
+                        <button class="url-paste-remove" id="tt-remove-btn">✕ Remove</button>
+                    </div>
                 </div>
 
                 <!-- Cross-platform Chart -->
@@ -857,7 +871,7 @@
                     <i data-lucide="bot" style="width:18px;height:18px"></i>
                 </div>
                 <div class="chat-bubble">
-                    Hey Ghost! 👋 I'm your BlowUp AI assistant. I can help you with:
+                    <span id="chatGreeting">Hey there!</span> 👋 I'm your BlowUp AI assistant. I can help you with:
                     <ul>
                         <li>📊 Analyzing your video performance</li>
                         <li>💡 Generating new video ideas</li>
