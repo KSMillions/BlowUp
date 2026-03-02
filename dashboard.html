@@ -424,99 +424,113 @@
             <div class="page-header">
                 <h1 class="page-title">SOCIAL PLATFORMS</h1>
             </div>
+
+            <!-- Connection toast notification -->
+            <div class="connect-toast" id="connectToast" style="display:none"></div>
+
             <div class="social-grid">
                 <!-- YouTube -->
-                <div class="social-card card-animate youtube-card">
+                <div class="social-card card-animate youtube-card" id="card-youtube">
                     <div class="social-card-header">
                         <div class="social-icon-large yt"><i data-lucide="youtube" style="width:32px;height:32px"></i>
                         </div>
-                        <div class="social-status connected"><i data-lucide="check-circle"
-                                style="width:14px;height:14px"></i> Connected</div>
+                        <div class="social-status" id="yt-status">
+                            <i data-lucide="link-2" style="width:14px;height:14px"></i> Not Connected
+                        </div>
                     </div>
-                    <h3>YouTube</h3>
+                    <h3 id="yt-channel-name">YouTube</h3>
                     <div class="social-stats">
                         <div class="social-stat">
-                            <span class="social-stat-value">1.29M</span>
+                            <span class="social-stat-value" id="yt-subscribers">—</span>
                             <span class="social-stat-label">Subscribers</span>
                         </div>
                         <div class="social-stat">
-                            <span class="social-stat-value">182M</span>
-                            <span class="social-stat-label">Views</span>
+                            <span class="social-stat-value" id="yt-views">—</span>
+                            <span class="social-stat-label">Total Views</span>
                         </div>
                         <div class="social-stat">
-                            <span class="social-stat-value">458</span>
+                            <span class="social-stat-value" id="yt-videos">—</span>
                             <span class="social-stat-label">Videos</span>
                         </div>
                     </div>
                     <div class="social-chart"><canvas id="ytMiniChart"></canvas></div>
-                    <button class="social-action-btn connected-btn">View Analytics</button>
+                    <button class="social-action-btn connect-btn" id="yt-btn" data-platform="youtube">
+                        Connect YouTube
+                    </button>
                 </div>
 
                 <!-- Instagram -->
-                <div class="social-card card-animate instagram-card">
+                <div class="social-card card-animate instagram-card" id="card-instagram">
                     <div class="social-card-header">
                         <div class="social-icon-large ig"><i data-lucide="instagram" style="width:32px;height:32px"></i>
                         </div>
-                        <div class="social-status connected"><i data-lucide="check-circle"
-                                style="width:14px;height:14px"></i> Connected</div>
+                        <div class="social-status" id="ig-status">
+                            <i data-lucide="link-2" style="width:14px;height:14px"></i> Not Connected
+                        </div>
                     </div>
-                    <h3>Instagram</h3>
+                    <h3 id="ig-username">Instagram</h3>
                     <div class="social-stats">
                         <div class="social-stat">
-                            <span class="social-stat-value">1.4M</span>
+                            <span class="social-stat-value" id="ig-followers">—</span>
                             <span class="social-stat-label">Followers</span>
                         </div>
                         <div class="social-stat">
-                            <span class="social-stat-value">3.2%</span>
+                            <span class="social-stat-value" id="ig-engagement">—</span>
                             <span class="social-stat-label">Eng. Rate</span>
                         </div>
                         <div class="social-stat">
-                            <span class="social-stat-value">865</span>
+                            <span class="social-stat-value" id="ig-posts">—</span>
                             <span class="social-stat-label">Posts</span>
                         </div>
                     </div>
                     <div class="social-chart"><canvas id="igMiniChart"></canvas></div>
-                    <button class="social-action-btn connected-btn" data-page="instagram">View Analytics</button>
-                    <div class="social-card card-animate tiktok-card">
-                        <div class="social-card-header">
-                            <div class="social-icon-large tt">
-                                <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
-                                    <path
-                                        d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V8.98a8.18 8.18 0 004.76 1.52V7.05a4.84 4.84 0 01-1-.36z" />
-                                </svg>
-                            </div>
-                            <div class="social-status connected"><i data-lucide="check-circle"
-                                    style="width:14px;height:14px"></i> Connected</div>
-                        </div>
-                        <h3>TikTok</h3>
-                        <div class="social-stats">
-                            <div class="social-stat">
-                                <span class="social-stat-value">2.2M</span>
-                                <span class="social-stat-label">Followers</span>
-                            </div>
-                            <div class="social-stat">
-                                <span class="social-stat-value">75.5M</span>
-                                <span class="social-stat-label">Likes</span>
-                            </div>
-                            <div class="social-stat">
-                                <span class="social-stat-value">4.8%</span>
-                                <span class="social-stat-label">Eng. Rate</span>
-                            </div>
-                        </div>
-                        <div class="social-chart"><canvas id="ttMiniChart"></canvas></div>
-                        <button class="social-action-btn connected-btn">View Analytics</button>
-                    </div>
-
-                    <!-- Cross-platform Chart -->
-                    <div class="chart-card card-animate" style="grid-column: 1 / -1;">
-                        <div class="card-header">
-                            <h2>CROSS-PLATFORM GROWTH</h2>
-                        </div>
-                        <div class="chart-container chart-tall">
-                            <canvas id="crossPlatformChart"></canvas>
-                        </div>
-                    </div>
+                    <button class="social-action-btn connect-btn" id="ig-btn" data-platform="instagram">
+                        Connect Instagram
+                    </button>
                 </div>
+
+                <!-- TikTok -->
+                <div class="social-card card-animate tiktok-card" id="card-tiktok">
+                    <div class="social-card-header">
+                        <div class="social-icon-large tt">
+                            <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+                                <path
+                                    d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V8.98a8.18 8.18 0 004.76 1.52V7.05a4.84 4.84 0 01-1-.36z" />
+                            </svg>
+                        </div>
+                        <div class="social-status" id="tt-status">
+                            <i data-lucide="link-2" style="width:14px;height:14px"></i> Not Connected
+                        </div>
+                    </div>
+                    <h3 id="tt-displayname">TikTok</h3>
+                    <div class="social-stats">
+                        <div class="social-stat">
+                            <span class="social-stat-value" id="tt-followers">—</span>
+                            <span class="social-stat-label">Followers</span>
+                        </div>
+                        <div class="social-stat">
+                            <span class="social-stat-value" id="tt-likes">—</span>
+                            <span class="social-stat-label">Total Likes</span>
+                        </div>
+                        <div class="social-stat">
+                            <span class="social-stat-value" id="tt-videos">—</span>
+                            <span class="social-stat-label">Videos</span>
+                        </div>
+                    </div>
+                    <div class="social-chart"><canvas id="ttMiniChart"></canvas></div>
+                    <button class="social-action-btn connect-btn" id="tt-btn" data-platform="tiktok">
+                        Connect TikTok
+                    </button>
+                </div>
+
+                <!-- Cross-platform Chart -->
+                <div class="chart-card card-animate" style="grid-column: 1 / -1;">
+                    <div class="card-header">
+                        <h2>CROSS-PLATFORM GROWTH</h2>
+                    </div>
+                    <div class="chart-container chart-tall"><canvas id="crossPlatformChart"></canvas></div>
+                </div>
+            </div>
         </section>
 
         <!-- ===== PAGE: INSTAGRAM ANALYTICS ===== -->

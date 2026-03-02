@@ -234,7 +234,140 @@ document.addEventListener('DOMContentLoaded', () => {
     initPlatformBars();
 
     if (window.lucide) lucide.createIcons();
+
+    // Social connections init (needs auth user — called after auth state confirmed)
+    firebase.auth().onAuthStateChanged(function (user) {
+        if (user) initSocialConnections(user.uid, db);
+    });
 });
+
+// ===== SOCIAL PLATFORM CONNECTIONS =====
+function initSocialConnections(uid, db) {
+    // Helper: format large numbers (1290000 -> 1.29M)
+    function fmt(n) {
+        if (!n) return '—';
+        n = Number(n);
+        if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+        if (n >= 1e6) return (n / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M';
+        if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+        return n.toLocaleString();
+    }
+
+    // Show toast for OAuth redirect result
+    const params = new URLSearchParams(window.location.search);
+    const connected = params.get('connected');
+    const oauthError = params.get('error');
+    const toast = document.getElementById('connectToast');
+    if (toast && (connected || oauthError)) {
+        const names = { youtube: 'YouTube', instagram: 'Instagram', tiktok: 'TikTok' };
+        if (connected) {
+            toast.textContent = `✓ ${names[connected] || connected} connected successfully!`;
+            toast.style.cssText = 'display:flex;background:rgba(57,255,20,0.12);border:1px solid rgba(57,255,20,0.3);color:#39FF14;border-radius:12px;padding:14px 20px;margin-bottom:20px;font-weight:600;';
+        } else {
+            const plat = oauthError.replace('_denied', '').replace('_failed', '');
+            toast.textContent = oauthError.includes('denied')
+                ? `Connection cancelled for ${names[plat] || plat}.`
+                : `Failed to connect ${names[plat] || plat}. Try again.`;
+            toast.style.cssText = 'display:flex;background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.3);color:#FF4D4D;border-radius:12px;padding:14px 20px;margin-bottom:20px;font-weight:600;';
+        }
+        // Remove param from URL without reload
+        window.history.replaceState({}, '', window.location.pathname);
+        setTimeout(() => { if (toast) toast.style.display = 'none'; }, 5000);
+    }
+
+    // Wire connect buttons — navigate to /api/{platform}-auth?uid=...
+    document.querySelectorAll('.connect-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const platform = btn.dataset.platform;
+            if (!platform) return;
+            if (btn.dataset.connected === 'true') {
+                // Disconnect: remove token doc and update platform flag
+                if (!confirm(`Disconnect ${platform}? Your data will be removed.`)) return;
+                db.collection('users').doc(uid).collection('tokens').doc(platform).delete();
+                db.collection('users').doc(uid).update({ [`platforms.${platform}`]: false });
+                setCardDisconnected(platform);
+            } else {
+                window.location.href = `/api/${platform}-auth?uid=${uid}`;
+            }
+        });
+    });
+
+    // Read all three token docs in parallel
+    const platforms = ['youtube', 'instagram', 'tiktok'];
+    platforms.forEach(async (platform) => {
+        try {
+            const snap = await db.collection('users').doc(uid).collection('tokens').doc(platform).get();
+            if (snap.exists && snap.data().connected) {
+                setCardConnected(platform, snap.data());
+            } else {
+                setCardDisconnected(platform);
+            }
+        } catch (e) {
+            setCardDisconnected(platform);
+        }
+    });
+
+    function setCardConnected(platform, data) {
+        const statusEl = document.getElementById(`${platformPrefix(platform)}-status`);
+        const btn = document.getElementById(`${platformPrefix(platform)}-btn`);
+        if (statusEl) {
+            statusEl.className = 'social-status connected';
+            statusEl.innerHTML = '<i data-lucide="check-circle" style="width:14px;height:14px"></i> Connected';
+        }
+        if (btn) {
+            btn.textContent = 'Disconnect';
+            btn.classList.remove('connect-btn');
+            btn.classList.add('connect-btn', 'connected-btn');
+            btn.dataset.connected = 'true';
+            btn.dataset.platform = platform;
+        }
+        if (window.lucide) lucide.createIcons();
+
+        // Populate stats based on platform
+        if (platform === 'youtube') {
+            setText('yt-channel-name', data.channelName || 'YouTube');
+            setText('yt-subscribers', fmt(data.subscriberCount));
+            setText('yt-views', fmt(data.viewCount));
+            setText('yt-videos', fmt(data.videoCount));
+        } else if (platform === 'instagram') {
+            setText('ig-username', data.username ? `@${data.username}` : 'Instagram');
+            setText('ig-followers', fmt(data.followersCount));
+        } else if (platform === 'tiktok') {
+            setText('tt-displayname', data.displayName ? `@${data.displayName}` : 'TikTok');
+            setText('tt-followers', fmt(data.followerCount));
+            setText('tt-likes', fmt(data.likesCount));
+            setText('tt-videos', fmt(data.videoCount));
+        }
+    }
+
+    function setCardDisconnected(platform) {
+        const prefix = platformPrefix(platform);
+        const statusEl = document.getElementById(`${prefix}-status`);
+        const btn = document.getElementById(`${prefix}-btn`);
+        if (statusEl) {
+            statusEl.className = 'social-status';
+            statusEl.innerHTML = '<i data-lucide="link-2" style="width:14px;height:14px"></i> Not Connected';
+        }
+        if (btn) {
+            const labels = { youtube: 'Connect YouTube', instagram: 'Connect Instagram', tiktok: 'Connect TikTok' };
+            btn.textContent = labels[platform] || 'Connect';
+            btn.classList.remove('connected-btn');
+            btn.dataset.connected = 'false';
+            btn.dataset.platform = platform;
+        }
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function platformPrefix(p) {
+        return { youtube: 'yt', instagram: 'ig', tiktok: 'tt' }[p] || p;
+    }
+    function setText(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+}
+
+
 
 // ===== NAVIGATION =====
 function initNavigation() {
