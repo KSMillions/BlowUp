@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact — BlowUp</title>
+    <meta name="description"
+        content="Get in touch with the BlowUp team for support, billing, partnerships, or general enquiries.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="legal.css">
+    <!-- Firebase for contact form submission -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <nav class="legal-nav">
+        <a href="index.html" class="legal-logo">
+            <img src="blowup-logo.jpg" alt="BlowUp" class="legal-logo-img">
+            <span>BlowUp</span>
+        </a>
+        <a href="index.html" class="legal-nav-back">← Back to Home</a>
+    </nav>
+
+    <div class="contact-layout">
+        <!-- LEFT: Info -->
+        <div class="contact-info">
+            <div class="legal-badge">Support</div>
+            <h1>Get in Touch</h1>
+            <p class="contact-sub">We're a small, focused team and we read every message. Choose a topic below and we'll
+                get back to you fast.</p>
+
+            <div class="contact-cards">
+                <div class="contact-card">
+                    <div class="contact-card-icon">💬</div>
+                    <h3>General Support</h3>
+                    <p>Questions about using BlowUp, features, or your account.</p>
+                    <a href="mailto:support@blowup.app">support@blowup.app</a>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-card-icon">💳</div>
+                    <h3>Billing &amp; Refunds</h3>
+                    <p>Subscription issues, refund requests, or invoice queries.</p>
+                    <a href="mailto:billing@blowup.app">billing@blowup.app</a>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-card-icon">🤝</div>
+                    <h3>Partnerships</h3>
+                    <p>Agency deals, white-label, or integration opportunities.</p>
+                    <a href="mailto:partners@blowup.app">partners@blowup.app</a>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-card-icon">⚖️</div>
+                    <h3>Legal &amp; Privacy</h3>
+                    <p>Data requests, POPIA/GDPR enquiries, or legal notices.</p>
+                    <a href="mailto:legal@blowup.app">legal@blowup.app</a>
+                </div>
+            </div>
+
+            <div class="contact-sla">
+                <div class="sla-item"><span class="sla-dot green"></span> Support replies within <strong>24
+                        hours</strong></div>
+                <div class="sla-item"><span class="sla-dot gold"></span> Billing resolved within <strong>5 business
+                        days</strong></div>
+                <div class="sla-item"><span class="sla-dot blue"></span> Legal requests within <strong>30 days</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Form -->
+        <div class="contact-form-wrap">
+            <div class="contact-form-card" id="formCard">
+                <h2>Send us a message</h2>
+                <form id="contactForm" autocomplete="off">
+                    <div class="cf-field">
+                        <label for="cf-name">Your Name</label>
+                        <input type="text" id="cf-name" placeholder="Ghost Hlubi" required>
+                    </div>
+                    <div class="cf-field">
+                        <label for="cf-email">Email Address</label>
+                        <input type="email" id="cf-email" placeholder="you@example.com" required>
+                    </div>
+                    <div class="cf-field">
+                        <label for="cf-subject">Subject</label>
+                        <select id="cf-subject">
+                            <option value="General Support">General Support</option>
+                            <option value="Billing & Refunds">Billing &amp; Refunds</option>
+                            <option value="Partnership">Partnership / Business</option>
+                            <option value="Privacy / Legal">Privacy / Legal</option>
+                            <option value="Bug Report">Bug Report</option>
+                            <option value="Feature Request">Feature Request</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="cf-field">
+                        <label for="cf-message">Message</label>
+                        <textarea id="cf-message" rows="6" placeholder="Describe your question or issue in detail..."
+                            required></textarea>
+                    </div>
+                    <button type="submit" class="cf-submit" id="cfSubmit">Send Message</button>
+                    <div id="cfStatus" class="cf-status"></div>
+                </form>
+            </div>
+
+            <!-- Success state -->
+            <div class="contact-success" id="contactSuccess" style="display:none">
+                <div class="success-icon">✅</div>
+                <h2>Message Received!</h2>
+                <p>Thanks for reaching out. We'll get back to you at <strong id="successEmail"></strong> within 24
+                    hours.</p>
+                <a href="index.html" class="cf-submit"
+                    style="display:inline-block;text-decoration:none;text-align:center;margin-top:8px">← Back to
+                    Home</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="legal-footer">
+        <span>© 2026 BlowUp. All rights reserved.</span>
+        <nav>
+            <a href="terms.html">Terms</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="refunds.html">Refunds</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+    </footer>
+
+    <script>
+        // Firebase init
+        const _cfg = {
+            apiKey: "AIzaSyAiL_kcASDLwBAyEs7-dE0pu_jdX_L4O8U",
+            authDomain: "blowup-90d12.firebaseapp.com",
+            projectId: "blowup-90d12",
+        };
+        if (!firebase.apps.length) firebase.initializeApp(_cfg);
+        const db = firebase.firestore();
+
+        document.getElementById('contactForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('cfSubmit');
+            const status = document.getElementById('cfStatus');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            const name = document.getElementById('cf-name').value.trim();
+            const email = document.getElementById('cf-email').value.trim();
+            const subject = document.getElementById('cf-subject').value;
+            const message = document.getElementById('cf-message').value.trim();
+
+            try {
+                await db.collection('contactMessages').add({
+                    name, email, subject, message,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'unread'
+                });
+                document.getElementById('successEmail').textContent = email;
+                document.getElementById('formCard').style.display = 'none';
+                document.getElementById('contactSuccess').style.display = 'flex';
+            } catch (err) {
+                status.textContent = '✗ Failed to send. Please email us directly at support@blowup.app';
+                status.style.color = '#FF4D4D';
+                btn.disabled = false;
+                btn.textContent = 'Send Message';
+            }
+        });
+    </script>
+</body>
+
+</html>
