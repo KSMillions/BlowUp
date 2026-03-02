@@ -468,11 +468,11 @@
 
 <body>
     <nav>
-        <a href="landing.html" class="nav-logo">
+        <a href="index.html" class="nav-logo">
             <img src="blowup-logo.jpg" alt="BlowUp">
             <div class="nav-logo-text"><span>Blow</span><span>Up</span></div>
         </a>
-        <a href="landing.html" class="back">← Back to Home</a>
+        <a href="index.html" class="back">← Back to Home</a>
     </nav>
 
     <div class="auth-wrapper">
@@ -634,7 +634,7 @@
 
         // If already logged in, go straight to dashboard
         auth.onAuthStateChanged(user => {
-            if (user) window.location.replace('index.html');
+            if (user) window.location.replace('dashboard.html');
         });
 
         // ===== TAB SWITCHING =====
