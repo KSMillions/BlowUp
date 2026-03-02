@@ -94,40 +94,128 @@ const orangeGlow = 'rgba(245, 166, 35, 0.15)';
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
-    // ===== LOAD USER FROM FIREBASE =====
-    // firebase is already initialized in the inline script in index.html
-    const fbUser = firebase.auth().currentUser;
-    if (fbUser) {
+    // ===== FIRESTORE PROFILE =====
+    const db = firebase.firestore();
+
+    function applyProfile(profile) {
+        const name = profile.displayName || 'Creator';
+        const plan = (profile.plan || 'free').toUpperCase();
+        const parts = name.trim().split(' ');
+        const initials = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+
+        // Topbar
         const nameEl = document.querySelector('.profile-name');
         const initialsEl = document.getElementById('avatarInitials');
-        const displayName = fbUser.displayName || fbUser.email.split('@')[0];
-        if (nameEl) nameEl.textContent = displayName;
-        if (initialsEl) {
-            const parts = displayName.trim().split(' ');
-            initialsEl.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+        const planBadgeEl = document.getElementById('planBadge');
+        if (nameEl) nameEl.textContent = name;
+        if (initialsEl) initialsEl.textContent = initials;
+        if (planBadgeEl) {
+            planBadgeEl.textContent = plan;
+            planBadgeEl.className = 'plan-badge plan-' + profile.plan;
+        }
+
+        // Settings drawer
+        const settingsAvatar = document.getElementById('settingsAvatar');
+        const settingsAvatarName = document.getElementById('settingsAvatarName');
+        const settingsAvatarEmail = document.getElementById('settingsAvatarEmail');
+        const settingsDisplayName = document.getElementById('settingsDisplayName');
+        const settingsEmail = document.getElementById('settingsEmail');
+        const settingsPlanBadge = document.getElementById('settingsPlanBadge');
+        const settingsPlanDesc = document.getElementById('settingsPlanDesc');
+        if (settingsAvatar) settingsAvatar.textContent = initials;
+        if (settingsAvatarName) settingsAvatarName.textContent = name;
+        if (settingsAvatarEmail) settingsAvatarEmail.textContent = profile.email || '';
+        if (settingsDisplayName) settingsDisplayName.value = name;
+        if (settingsEmail) settingsEmail.value = profile.email || '';
+        if (settingsPlanBadge) settingsPlanBadge.textContent = plan;
+        if (settingsPlanDesc) {
+            const descs = {
+                free: 'Access to 1 YouTube channel & basic analytics',
+                pro: 'Full access — YouTube, Instagram & TikTok + AI Studio',
+                agency: 'Up to 10 creators, white-label reports & API access'
+            };
+            settingsPlanDesc.textContent = descs[profile.plan] || descs.free;
         }
     }
-    // Also listen for auth state (handles page refresh timing)
+
+    // Read profile from Firestore on auth state change
     firebase.auth().onAuthStateChanged(function (user) {
         if (user) {
-            const nameEl = document.querySelector('.profile-name');
-            const initialsEl = document.getElementById('avatarInitials');
-            const displayName = user.displayName || user.email.split('@')[0];
-            if (nameEl) nameEl.textContent = displayName;
-            if (initialsEl) {
-                const parts = displayName.trim().split(' ');
-                initialsEl.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
-            }
+            db.collection('users').doc(user.uid).get().then(snap => {
+                if (snap.exists) {
+                    applyProfile(snap.data());
+                } else {
+                    // Fallback to Firebase Auth data (e.g. existing Google users)
+                    applyProfile({
+                        displayName: user.displayName || user.email.split('@')[0],
+                        email: user.email,
+                        plan: 'free'
+                    });
+                }
+            }).catch(() => {
+                applyProfile({
+                    displayName: user.displayName || user.email.split('@')[0],
+                    email: user.email,
+                    plan: 'free'
+                });
+            });
         }
     });
 
     // ===== LOGOUT =====
+    const doSignOut = () => firebase.auth().signOut().then(() => { window.location.href = 'auth.html'; });
     const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            firebase.auth().signOut().then(() => {
-                window.location.href = 'auth.html';
-            });
+    const settingsLogoutBtn = document.getElementById('settingsLogoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', doSignOut);
+    if (settingsLogoutBtn) settingsLogoutBtn.addEventListener('click', doSignOut);
+
+    // ===== SETTINGS DRAWER =====
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsDrawer = document.getElementById('settingsDrawer');
+    const settingsClose = document.getElementById('settingsClose');
+    const settingsOverlay = document.getElementById('settingsOverlay');
+
+    function openSettings() {
+        settingsDrawer.classList.add('open');
+        settingsOverlay.classList.add('open');
+    }
+    function closeSettings() {
+        settingsDrawer.classList.remove('open');
+        settingsOverlay.classList.remove('open');
+    }
+    if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
+    if (settingsClose) settingsClose.addEventListener('click', closeSettings);
+    if (settingsOverlay) settingsOverlay.addEventListener('click', closeSettings);
+
+    // Save profile changes
+    const settingsSaveBtn = document.getElementById('settingsSaveBtn');
+    const settingsSaveMsg = document.getElementById('settingsSaveMsg');
+    if (settingsSaveBtn) {
+        settingsSaveBtn.addEventListener('click', async () => {
+            const user = firebase.auth().currentUser;
+            if (!user) return;
+            const newName = document.getElementById('settingsDisplayName').value.trim();
+            if (!newName) return;
+            settingsSaveBtn.disabled = true;
+            settingsSaveBtn.textContent = 'Saving...';
+            try {
+                await db.collection('users').doc(user.uid).update({
+                    displayName: newName,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                await user.updateProfile({ displayName: newName });
+                // Re-read and apply
+                const snap = await db.collection('users').doc(user.uid).get();
+                if (snap.exists) applyProfile(snap.data());
+                settingsSaveMsg.textContent = '✓ Saved successfully';
+                settingsSaveMsg.style.color = '#39FF14';
+            } catch (err) {
+                settingsSaveMsg.textContent = '✗ Failed to save. Try again.';
+                settingsSaveMsg.style.color = '#FF4D4D';
+            }
+            settingsSaveBtn.disabled = false;
+            settingsSaveBtn.textContent = 'Save Changes';
+            setTimeout(() => { settingsSaveMsg.textContent = ''; }, 3000);
         });
     }
 
@@ -145,10 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAnimations();
     initPlatformBars();
 
-    // Initialize Lucide icons
-    if (window.lucide) {
-        lucide.createIcons();
-    }
+    if (window.lucide) lucide.createIcons();
 });
 
 // ===== NAVIGATION =====

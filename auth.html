@@ -12,6 +12,7 @@
     <!-- Firebase CDN (compat mode — works without a bundler) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
 
     <style>
@@ -630,7 +631,30 @@
         };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+        const db = firebase.firestore();
         const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+        // ===== FIRESTORE HELPERS =====
+        async function createUserProfile(user, extraData = {}) {
+            const ref = db.collection('users').doc(user.uid);
+            const snap = await ref.get();
+            const base = {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || extraData.displayName || user.email.split('@')[0],
+                photoURL: user.photoURL || null,
+                plan: 'free',
+                platforms: { youtube: false, instagram: false, tiktok: false },
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            if (!snap.exists) {
+                // New user — create full document
+                await ref.set({ ...base, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+            } else {
+                // Existing user — merge only safe fields
+                await ref.set({ email: user.email, displayName: base.displayName, updatedAt: base.updatedAt }, { merge: true });
+            }
+        }
 
         // If already logged in, go straight to dashboard
         auth.onAuthStateChanged(user => {
@@ -745,8 +769,11 @@
             setLoading('signupSubmit', true, 'Create Free Account');
             try {
                 const cred = await auth.createUserWithEmailAndPassword(email, password);
-                // Set display name
-                await cred.user.updateProfile({ displayName: firstName + ' ' + lastName });
+                const fullName = firstName + ' ' + lastName;
+                // Set display name in Firebase Auth
+                await cred.user.updateProfile({ displayName: fullName });
+                // Create Firestore profile document
+                await createUserProfile(cred.user, { displayName: fullName });
                 // onAuthStateChanged will redirect
             } catch (err) {
                 showAlert('signupAlert', 'error', friendlyError(err.code));
@@ -758,7 +785,9 @@
         async function signInWithGoogle(alertId) {
             clearAlerts();
             try {
-                await auth.signInWithPopup(googleProvider);
+                const result = await auth.signInWithPopup(googleProvider);
+                // Create / merge Firestore profile for Google users
+                await createUserProfile(result.user);
                 // onAuthStateChanged will redirect
             } catch (err) {
                 showAlert(alertId, 'error', friendlyError(err.code));

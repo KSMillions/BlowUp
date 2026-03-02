@@ -14,6 +14,7 @@
     <!-- Firebase CDN (must load before auth gate) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="style.css">
@@ -110,11 +111,66 @@
                     <span id="avatarInitials">GH</span>
                     <div class="avatar-badge">2</div>
                 </div>
+                <span class="plan-badge" id="planBadge">FREE</span>
                 <button class="logout-btn" id="logoutBtn" title="Log out">
                     <i data-lucide="log-out" style="width:16px;height:16px"></i>
                 </button>
             </div>
         </header>
+
+        <!-- ===== SETTINGS DRAWER ===== -->
+        <div class="settings-overlay" id="settingsOverlay"></div>
+        <div class="settings-drawer" id="settingsDrawer">
+            <div class="settings-header">
+                <h2>Account Settings</h2>
+                <button class="settings-close" id="settingsClose">
+                    <i data-lucide="x" style="width:20px;height:20px"></i>
+                </button>
+            </div>
+            <div class="settings-body">
+                <!-- Profile Section -->
+                <div class="settings-section">
+                    <div class="settings-section-title">Profile</div>
+                    <div class="settings-avatar-row">
+                        <div class="settings-avatar" id="settingsAvatar">GH</div>
+                        <div>
+                            <div class="settings-avatar-name" id="settingsAvatarName">Ghost Hlubi</div>
+                            <div class="settings-avatar-email" id="settingsAvatarEmail">ghost@blowup.app</div>
+                        </div>
+                    </div>
+                    <div class="settings-field">
+                        <label>Display Name</label>
+                        <input type="text" id="settingsDisplayName" placeholder="Your name">
+                    </div>
+                    <div class="settings-field">
+                        <label>Email</label>
+                        <input type="email" id="settingsEmail" placeholder="your@email.com" disabled>
+                        <span class="settings-field-hint">Email cannot be changed here</span>
+                    </div>
+                    <button class="settings-save-btn" id="settingsSaveBtn">Save Changes</button>
+                    <div class="settings-save-msg" id="settingsSaveMsg"></div>
+                </div>
+
+                <!-- Plan Section -->
+                <div class="settings-section">
+                    <div class="settings-section-title">Current Plan</div>
+                    <div class="settings-plan-card" id="settingsPlanCard">
+                        <div class="settings-plan-badge" id="settingsPlanBadge">FREE</div>
+                        <div class="settings-plan-desc" id="settingsPlanDesc">Access to 1 YouTube channel & basic
+                            analytics</div>
+                        <a href="index.html#pricing" class="settings-upgrade-btn">Upgrade Plan →</a>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="settings-section">
+                    <div class="settings-section-title" style="color:#FF4D4D">Danger Zone</div>
+                    <button class="settings-logout-btn" id="settingsLogoutBtn">
+                        <i data-lucide="log-out" style="width:16px;height:16px"></i> Sign Out
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- ===== PAGE: OVERVIEW ===== -->
         <section class="page active" id="page-overview">
