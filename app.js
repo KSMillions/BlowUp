@@ -329,6 +329,11 @@ function initSocialConnections(uid, db) {
             setText('yt-subscribers', fmt(data.subscriberCount));
             setText('yt-views', fmt(data.viewCount));
             setText('yt-videos', fmt(data.videoCount));
+            // Update Channel filter label
+            const chanOpt = document.getElementById('channelFilterMain');
+            if (chanOpt && data.channelName) chanOpt.textContent = data.channelName;
+            // Populate overview KPI cards
+            updateOverviewKPIs(data);
         } else if (platform === 'instagram') {
             setText('ig-username', data.username ? `@${data.username}` : 'Instagram');
             setText('ig-followers', fmt(data.followersCount));
@@ -339,6 +344,45 @@ function initSocialConnections(uid, db) {
             setText('tt-videos', fmt(data.videoCount));
         }
     }
+
+    function updateOverviewKPIs(ytData) {
+        // Hide the connect prompt, show the grid
+        const prompt = document.getElementById('overviewConnectPrompt');
+        const grid = document.getElementById('overviewGrid');
+        if (prompt) prompt.style.display = 'none';
+        if (grid) grid.style.display = '';
+
+        // Subscribers
+        setText('kpi-subs-value', fmt(ytData.subscriberCount));
+        setText('kpi-subs-sub', ytData.channelName || 'YouTube Channel');
+
+        // Views
+        setText('kpi-views-value', fmt(ytData.viewCount));
+        setText('kpi-views-sub', 'Total lifetime views');
+
+        // Videos (was "watch time" — now shows video count since that's what we store)
+        setText('kpi-videos-value', fmt(ytData.videoCount));
+        setText('kpi-videos-sub', 'Videos published');
+
+        // Revenue estimate: rough CPM of ~R25 per 1000 views
+        if (ytData.viewCount) {
+            const estRevenue = Math.round((Number(ytData.viewCount) / 1000) * 25);
+            const revFmt = estRevenue >= 1e6 ? (estRevenue / 1e6).toFixed(1) + 'M'
+                : estRevenue >= 1e3 ? (estRevenue / 1e3).toFixed(0) + 'K'
+                    : estRevenue.toString();
+            setText('kpi-rev-value', `R ${revFmt}`);
+            setText('kpi-rev-sub', 'Est. lifetime (R25 CPM)');
+        }
+    }
+
+    function showConnectPrompt() {
+        const prompt = document.getElementById('overviewConnectPrompt');
+        const grid = document.getElementById('overviewGrid');
+        if (prompt) prompt.style.display = 'flex';
+        if (grid) grid.style.opacity = '0.35';
+    }
+
+
 
     function setCardDisconnected(platform) {
         const prefix = platformPrefix(platform);
@@ -356,6 +400,8 @@ function initSocialConnections(uid, db) {
             btn.dataset.platform = platform;
         }
         if (window.lucide) lucide.createIcons();
+        // Show connect prompt on overview for unconnected YouTube
+        if (platform === 'youtube') showConnectPrompt();
     }
 
     function platformPrefix(p) {

@@ -199,65 +199,69 @@
                     <div class="filter-dropdown">
                         <span>Channel:</span>
                         <select id="channelFilter">
-                            <option value="main">Ghost Hlubi</option>
-                            <option value="vlogs">Vlogs</option>
-                            <option value="cars">Cars</option>
+                            <option value="main" id="channelFilterMain">My Channel</option>
                         </select>
                     </div>
                 </div>
             </div>
 
-            <div class="dashboard-grid">
+            <!-- Connect prompt (shown when no YouTube connected) -->
+            <div class="connect-prompt" id="overviewConnectPrompt" style="display:none">
+                <div class="connect-prompt-icon">📊</div>
+                <h3>Connect YouTube to see your analytics</h3>
+                <p>Link your YouTube channel to unlock real subscriber counts, views, watch time, and revenue estimates.
+                </p>
+                <button class="connect-prompt-btn"
+                    onclick="document.querySelector('[data-page=social]').click()">Connect Platforms →</button>
+            </div>
+
+            <div class="dashboard-grid" id="overviewGrid">
                 <!-- KPI Cards Row -->
                 <div class="kpi-card card-animate" id="kpi-subscribers">
                     <div class="kpi-header">
                         <span class="kpi-label">Subscribers</span>
-                        <div class="kpi-trend up">
+                        <div class="kpi-trend up" id="kpi-subs-trend" style="display:none">
                             <i data-lucide="trending-up" style="width:14px;height:14px"></i>
-                            <span>+12.4%</span>
+                            <span>—</span>
                         </div>
                     </div>
-                    <div class="kpi-value">1.29M</div>
-                    <div class="kpi-sub">+142,380 this month</div>
+                    <div class="kpi-value" id="kpi-subs-value">—</div>
+                    <div class="kpi-sub" id="kpi-subs-sub">Connect YouTube to see data</div>
                     <div class="kpi-sparkline"><canvas id="sparkSubs"></canvas></div>
                 </div>
 
                 <div class="kpi-card card-animate" id="kpi-views">
                     <div class="kpi-header">
                         <span class="kpi-label">Total Views</span>
-                        <div class="kpi-trend up">
+                        <div class="kpi-trend up" id="kpi-views-trend" style="display:none">
                             <i data-lucide="trending-up" style="width:14px;height:14px"></i>
-                            <span>+8.7%</span>
+                            <span>—</span>
                         </div>
                     </div>
-                    <div class="kpi-value">182M</div>
-                    <div class="kpi-sub">+14.2M this month</div>
+                    <div class="kpi-value" id="kpi-views-value">—</div>
+                    <div class="kpi-sub" id="kpi-views-sub">Connect YouTube to see data</div>
                     <div class="kpi-sparkline"><canvas id="sparkViews"></canvas></div>
                 </div>
 
                 <div class="kpi-card card-animate" id="kpi-watchtime">
                     <div class="kpi-header">
-                        <span class="kpi-label">Watch Time</span>
-                        <div class="kpi-trend up">
-                            <i data-lucide="trending-up" style="width:14px;height:14px"></i>
-                            <span>+5.2%</span>
-                        </div>
+                        <span class="kpi-label">Videos</span>
                     </div>
-                    <div class="kpi-value">4.8M hrs</div>
-                    <div class="kpi-sub">Avg 10.6 min/view</div>
+                    <div class="kpi-value" id="kpi-videos-value">—</div>
+                    <div class="kpi-sub" id="kpi-videos-sub">Connect YouTube to see data</div>
                     <div class="kpi-sparkline"><canvas id="sparkWatch"></canvas></div>
                 </div>
 
                 <div class="kpi-card card-animate" id="kpi-revenue">
                     <div class="kpi-header">
                         <span class="kpi-label">Est. Revenue</span>
-                        <div class="kpi-trend up">
+                        <div class="kpi-trend up" id="kpi-rev-trend" style="display:none">
                             <i data-lucide="trending-up" style="width:14px;height:14px"></i>
-                            <span>+15.1%</span>
+                            <span>—</span>
                         </div>
                     </div>
-                    <div class="kpi-value">R 284K</div>
-                    <div class="kpi-sub">+R 37K this month</div>
+                    <div class="kpi-value" id="kpi-rev-value">—</div>
+                    <div class="kpi-sub" id="kpi-rev-sub">Available after YouTube connection</div>
                     <div class="kpi-sparkline"><canvas id="sparkRevenue"></canvas></div>
                 </div>
 

@@ -756,6 +756,66 @@ body {
     background: rgba(255, 77, 77, 0.15);
 }
 
+/* ===== CONNECT PROMPT (overview — no YouTube connected) ===== */
+.connect-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 14px;
+    padding: 48px 32px;
+    background: rgba(245, 166, 35, 0.05);
+    border: 1px dashed rgba(245, 166, 35, 0.25);
+    border-radius: 20px;
+    margin-bottom: 20px;
+}
+
+.connect-prompt-icon {
+    font-size: 48px;
+}
+
+.connect-prompt h3 {
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.connect-prompt p {
+    font-size: 14px;
+    color: var(--text-muted);
+    max-width: 420px;
+    line-height: 1.6;
+}
+
+.connect-prompt-btn {
+    background: linear-gradient(135deg, var(--gold), #C8841A);
+    border: none;
+    color: #000;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 14px 28px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.connect-prompt-btn:hover {
+    opacity: 0.88;
+}
+
+/* ===== CONNECT BUTTON (platform cards — not connected state) ===== */
+.social-action-btn.connect-btn:not(.connected-btn) {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-muted);
+}
+
+.social-action-btn.connect-btn:not(.connected-btn):hover {
+    background: rgba(245, 166, 35, 0.1);
+    border-color: rgba(245, 166, 35, 0.4);
+    color: var(--gold);
+}
+
 @media (max-width: 600px) {
     .settings-drawer {
         width: 100%;
