@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlowUp — Log In or Sign Up</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Firebase CDN (compat mode — works without a bundler) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
+
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --gold: #F5A623;
+            --gold-dark: #C8841A;
+            --cyan: #00D4FF;
+            --bg: #080A0F;
+            --bg2: #0D1017;
+            --bg3: #131820;
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #FFFFFF;
+            --text-muted: #8A95A3;
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --green: #39FF14;
+            --red: #FF4D4D;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse 70% 50% at 20% 10%, rgba(245, 166, 35, 0.1) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 60% at 80% 90%, rgba(0, 212, 255, 0.08) 0%, transparent 60%);
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 48px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .nav-logo img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .nav-logo-text {
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .nav-logo-text span:first-child {
+            color: var(--gold);
+        }
+
+        .nav-logo-text span:last-child {
+            color: var(--cyan);
+        }
+
+        nav a.back {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        nav a.back:hover {
+            color: var(--text);
+        }
+
+        .auth-wrapper {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: calc(100vh - 74px);
+        }
+
+        .auth-left {
+            background: linear-gradient(145deg, rgba(245, 166, 35, 0.07), rgba(0, 212, 255, 0.04));
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 56px;
+            text-align: center;
+        }
+
+        .auth-left-logo {
+            margin-bottom: 32px;
+        }
+
+        .auth-left-logo img {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 0 40px rgba(245, 166, 35, 0.3);
+        }
+
+        .auth-left h2 {
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 12px;
+        }
+
+        .auth-left h2 span {
+            color: var(--gold);
+        }
+
+        .auth-left p {
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-width: 360px;
+            margin-bottom: 48px;
+        }
+
+        .auth-perks {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .perk {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 18px;
+            text-align: left;
+        }
+
+        .perk-icon {
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .perk-text strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .perk-text span {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .auth-right {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px 72px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 36px;
+            background: var(--bg3);
+            border-radius: 12px;
+            padding: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .auth-tab.active {
+            background: var(--gold);
+            color: #000;
+        }
+
+        .auth-form {
+            display: none;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .auth-form.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .form-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .form-sub {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .form-group input {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 13px 16px;
+            color: var(--text);
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--gold);
+            background: rgba(245, 166, 35, 0.05);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        .form-group.error input {
+            border-color: var(--red);
+        }
+
+        .form-group .err-msg {
+            font-size: 12px;
+            color: var(--red);
+            display: none;
+        }
+
+        .form-group.error .err-msg {
+            display: block;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            padding-right: 48px;
+            width: 100%;
+        }
+
+        .toggle-pw {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+        }
+
+        .forgot {
+            font-size: 13px;
+            color: var(--gold);
+            text-decoration: none;
+            align-self: flex-end;
+            transition: opacity 0.2s;
+            cursor: pointer;
+        }
+
+        .forgot:hover {
+            opacity: 0.75;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 0 30px rgba(245, 166, 35, 0.3);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 50px rgba(245, 166, 35, 0.5);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-google:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .btn-google:disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .terms-note {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .terms-note a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+
+        .alert {
+            display: none;
+            border-radius: 10px;
+            padding: 13px 16px;
+            font-size: 14px;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert.show {
+            display: flex;
+        }
+
+        .alert.success {
+            background: rgba(57, 255, 20, 0.08);
+            border: 1px solid rgba(57, 255, 20, 0.3);
+            color: var(--green);
+        }
+
+        .alert.error {
+            background: rgba(255, 77, 77, 0.08);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            color: var(--red);
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                padding: 18px 20px;
+            }
+
+            .auth-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .auth-left {
+                display: none;
+            }
+
+            .auth-right {
+                padding: 40px 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="landing.html" class="nav-logo">
+            <img src="blowup-logo.jpg" alt="BlowUp">
+            <div class="nav-logo-text"><span>Blow</span><span>Up</span></div>
+        </a>
+        <a href="landing.html" class="back">← Back to Home</a>
+    </nav>
+
+    <div class="auth-wrapper">
+        <!-- LEFT: Brand Panel -->
+        <div class="auth-left">
+            <div class="auth-left-logo">
+                <img src="blowup-logo.jpg" alt="BlowUp">
+            </div>
+            <h2>Your growth<br>starts <span>here</span></h2>
+            <p>Join the platform that gives creators real data, AI-powered strategy, and the edge they need to grow.</p>
+            <div class="auth-perks">
+                <div class="perk">
+                    <div class="perk-icon">📊</div>
+                    <div class="perk-text">
+                        <strong>All your analytics, one place</strong>
+                        <span>YouTube, Instagram & TikTok unified</span>
+                    </div>
+                </div>
+                <div class="perk">
+                    <div class="perk-icon">🤖</div>
+                    <div class="perk-text">
+                        <strong>AI-powered content ideas</strong>
+                        <span>Trending topics tailored to your niche</span>
+                    </div>
+                </div>
+                <div class="perk">
+                    <div class="perk-icon">🎯</div>
+                    <div class="perk-text">
+                        <strong>Caption & CTR analysis</strong>
+                        <span>Know exactly what drives clicks</span>
+                    </div>
+                </div>
+                <div class="perk">
+                    <div class="perk-icon">⚡</div>
+                    <div class="perk-text">
+                        <strong>Free to get started</strong>
+                        <span>No credit card required</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Auth Forms -->
+        <div class="auth-right">
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">Log In</button>
+                <button class="auth-tab" data-tab="signup">Sign Up</button>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <form class="auth-form active" id="loginForm" novalidate>
+                <div>
+                    <div class="form-title">Welcome back 👋</div>
+                    <div class="form-sub">Log in to your BlowUp account</div>
+                </div>
+                <div class="alert" id="loginAlert"></div>
+                <button type="button" class="btn-google" id="googleLoginBtn">
+                    <svg width="20" height="20" viewBox="0 0 48 48">
+                        <path fill="#EA4335"
+                            d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                        <path fill="#4285F4"
+                            d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                        <path fill="#FBBC05"
+                            d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                        <path fill="#34A853"
+                            d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                    </svg>
+                    Continue with Google
+                </button>
+                <div class="divider">or continue with email</div>
+                <div class="form-group" id="loginEmailGroup">
+                    <label>Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+                    <span class="err-msg">Please enter a valid email</span>
+                </div>
+                <div class="form-group" id="loginPasswordGroup">
+                    <label>Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="loginPassword" placeholder="••••••••"
+                            autocomplete="current-password">
+                        <button type="button" class="toggle-pw" data-target="loginPassword">👁</button>
+                    </div>
+                    <span class="err-msg">Please enter your password</span>
+                </div>
+                <span class="forgot" id="forgotPasswordBtn">Forgot password?</span>
+                <button type="submit" class="btn-submit" id="loginSubmit">Log In to BlowUp</button>
+                <p class="terms-note">By logging in you agree to our <a href="#">Terms</a> and <a href="#">Privacy
+                        Policy</a></p>
+            </form>
+
+            <!-- SIGNUP FORM -->
+            <form class="auth-form" id="signupForm" novalidate>
+                <div>
+                    <div class="form-title">Create your account 🚀</div>
+                    <div class="form-sub">Free forever. No credit card needed.</div>
+                </div>
+                <div class="alert" id="signupAlert"></div>
+                <button type="button" class="btn-google" id="googleSignupBtn">
+                    <svg width="20" height="20" viewBox="0 0 48 48">
+                        <path fill="#EA4335"
+                            d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                        <path fill="#4285F4"
+                            d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                        <path fill="#FBBC05"
+                            d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                        <path fill="#34A853"
+                            d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                    </svg>
+                    Continue with Google
+                </button>
+                <div class="divider">or sign up with email</div>
+                <div class="form-row">
+                    <div class="form-group" id="firstNameGroup">
+                        <label>First Name</label>
+                        <input type="text" id="firstName" placeholder="Ghost" autocomplete="given-name">
+                        <span class="err-msg">Required</span>
+                    </div>
+                    <div class="form-group" id="lastNameGroup">
+                        <label>Last Name</label>
+                        <input type="text" id="lastName" placeholder="Hlubi" autocomplete="family-name">
+                        <span class="err-msg">Required</span>
+                    </div>
+                </div>
+                <div class="form-group" id="signupEmailGroup">
+                    <label>Email Address</label>
+                    <input type="email" id="signupEmail" placeholder="you@example.com" autocomplete="email">
+                    <span class="err-msg">Please enter a valid email</span>
+                </div>
+                <div class="form-group" id="signupPasswordGroup">
+                    <label>Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="signupPassword" placeholder="At least 8 characters"
+                            autocomplete="new-password">
+                        <button type="button" class="toggle-pw" data-target="signupPassword">👁</button>
+                    </div>
+                    <span class="err-msg">Password must be at least 8 characters</span>
+                </div>
+                <button type="submit" class="btn-submit" id="signupSubmit">Create Free Account</button>
+                <p class="terms-note">By signing up you agree to our <a href="#">Terms of Service</a> and <a
+                        href="#">Privacy Policy</a></p>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ===== FIREBASE INIT =====
+        const firebaseConfig = {
+            apiKey: "AIzaSyAiL_kcASDLwBAyEs7-dE0pu_jdX_L4O8U",
+            authDomain: "blowup-90d12.firebaseapp.com",
+            projectId: "blowup-90d12",
+            storageBucket: "blowup-90d12.firebasestorage.app",
+            messagingSenderId: "864864813594",
+            appId: "1:864864813594:web:88bb93bb71e6deca05c7a3",
+            measurementId: "G-7DBJ30SKFJ"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+        // If already logged in, go straight to dashboard
+        auth.onAuthStateChanged(user => {
+            if (user) window.location.replace('index.html');
+        });
+
+        // ===== TAB SWITCHING =====
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab + 'Form').classList.add('active');
+                clearAlerts();
+            });
+        });
+
+        // Auto-open signup tab if URL has #signup
+        if (window.location.hash === '#signup') {
+            document.querySelectorAll('.auth-tab')[1].click();
+        }
+
+        // ===== PASSWORD TOGGLE =====
+        document.querySelectorAll('.toggle-pw').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const input = document.getElementById(btn.dataset.target);
+                input.type = input.type === 'password' ? 'text' : 'password';
+                btn.textContent = input.type === 'password' ? '👁' : '🙈';
+            });
+        });
+
+        // ===== ALERT HELPERS =====
+        function showAlert(id, type, msg) {
+            const el = document.getElementById(id);
+            el.className = `alert ${type} show`;
+            el.textContent = msg;
+        }
+        function clearAlerts() {
+            document.querySelectorAll('.alert').forEach(el => el.classList.remove('show'));
+        }
+        function setLoading(btnId, loading, defaultText) {
+            const btn = document.getElementById(btnId);
+            btn.disabled = loading;
+            btn.textContent = loading ? 'Please wait...' : defaultText;
+        }
+
+        // ===== VALIDATION =====
+        function validateEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+        function setFieldError(groupId, hasError) {
+            document.getElementById(groupId).classList.toggle('error', hasError);
+            return hasError;
+        }
+
+        // ===== FIREBASE ERROR MESSAGES =====
+        function friendlyError(code) {
+            const map = {
+                'auth/user-not-found': 'No account found with this email.',
+                'auth/wrong-password': 'Incorrect password. Please try again.',
+                'auth/invalid-credential': 'Incorrect email or password.',
+                'auth/email-already-in-use': 'An account with this email already exists. Try logging in.',
+                'auth/weak-password': 'Password is too weak. Use at least 8 characters.',
+                'auth/invalid-email': 'Please enter a valid email address.',
+                'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
+                'auth/popup-closed-by-user': 'Sign-in popup was closed. Please try again.',
+                'auth/network-request-failed': 'Network error. Check your connection.',
+            };
+            return map[code] || 'Something went wrong. Please try again.';
+        }
+
+        // ===== LOGIN =====
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearAlerts();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            let hasError = false;
+            if (!validateEmail(email)) hasError = setFieldError('loginEmailGroup', true);
+            else setFieldError('loginEmailGroup', false);
+            if (!password) hasError = setFieldError('loginPasswordGroup', true);
+            else setFieldError('loginPasswordGroup', false);
+            if (hasError) return;
+
+            setLoading('loginSubmit', true, 'Log In to BlowUp');
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                // onAuthStateChanged will redirect
+            } catch (err) {
+                showAlert('loginAlert', 'error', friendlyError(err.code));
+                setLoading('loginSubmit', false, 'Log In to BlowUp');
+            }
+        });
+
+        // ===== SIGNUP =====
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearAlerts();
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            let hasError = false;
+            if (!firstName) hasError = setFieldError('firstNameGroup', true);
+            else setFieldError('firstNameGroup', false);
+            if (!lastName) hasError = setFieldError('lastNameGroup', true);
+            else setFieldError('lastNameGroup', false);
+            if (!validateEmail(email)) hasError = setFieldError('signupEmailGroup', true);
+            else setFieldError('signupEmailGroup', false);
+            if (password.length < 8) hasError = setFieldError('signupPasswordGroup', true);
+            else setFieldError('signupPasswordGroup', false);
+            if (hasError) return;
+
+            setLoading('signupSubmit', true, 'Create Free Account');
+            try {
+                const cred = await auth.createUserWithEmailAndPassword(email, password);
+                // Set display name
+                await cred.user.updateProfile({ displayName: firstName + ' ' + lastName });
+                // onAuthStateChanged will redirect
+            } catch (err) {
+                showAlert('signupAlert', 'error', friendlyError(err.code));
+                setLoading('signupSubmit', false, 'Create Free Account');
+            }
+        });
+
+        // ===== GOOGLE SIGN-IN =====
+        async function signInWithGoogle(alertId) {
+            clearAlerts();
+            try {
+                await auth.signInWithPopup(googleProvider);
+                // onAuthStateChanged will redirect
+            } catch (err) {
+                showAlert(alertId, 'error', friendlyError(err.code));
+            }
+        }
+        document.getElementById('googleLoginBtn').addEventListener('click', () => signInWithGoogle('loginAlert'));
+        document.getElementById('googleSignupBtn').addEventListener('click', () => signInWithGoogle('signupAlert'));
+
+        // ===== FORGOT PASSWORD =====
+        document.getElementById('forgotPasswordBtn').addEventListener('click', async () => {
+            const email = document.getElementById('loginEmail').value.trim();
+            if (!validateEmail(email)) {
+                showAlert('loginAlert', 'error', 'Enter your email above first, then click Forgot Password.');
+                return;
+            }
+            try {
+                await auth.sendPasswordResetEmail(email);
+                showAlert('loginAlert', 'success', `✓ Password reset email sent to ${email}`);
+            } catch (err) {
+                showAlert('loginAlert', 'error', friendlyError(err.code));
+            }
+        });
+    </script>
+</body>
+
+</html>

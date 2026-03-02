@@ -267,7 +267,7 @@ body {
     margin-bottom: 32px;
 }
 
-.nexora-logo-img {
+.blowup-logo-img {
     width: 48px;
     height: 48px;
     border-radius: 50%;
@@ -276,7 +276,7 @@ body {
     filter: brightness(1.1);
 }
 
-.logo-icon:hover .nexora-logo-img {
+.logo-icon:hover .blowup-logo-img {
     filter: brightness(1.3) drop-shadow(0 0 14px rgba(138, 230, 92, 0.6));
     transform: scale(1.1);
 }
@@ -458,6 +458,27 @@ body {
 .profile-avatar:hover {
     transform: scale(1.08);
     box-shadow: 0 0 20px rgba(138, 230, 92, 0.3);
+}
+
+.logout-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 77, 77, 0.1);
+    border-color: rgba(255, 77, 77, 0.4);
+    color: #FF4D4D;
 }
 
 .avatar-badge {

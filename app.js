@@ -94,6 +94,43 @@ const orangeGlow = 'rgba(245, 166, 35, 0.15)';
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
+    // ===== LOAD USER FROM FIREBASE =====
+    // firebase is already initialized in the inline script in index.html
+    const fbUser = firebase.auth().currentUser;
+    if (fbUser) {
+        const nameEl = document.querySelector('.profile-name');
+        const initialsEl = document.getElementById('avatarInitials');
+        const displayName = fbUser.displayName || fbUser.email.split('@')[0];
+        if (nameEl) nameEl.textContent = displayName;
+        if (initialsEl) {
+            const parts = displayName.trim().split(' ');
+            initialsEl.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+        }
+    }
+    // Also listen for auth state (handles page refresh timing)
+    firebase.auth().onAuthStateChanged(function (user) {
+        if (user) {
+            const nameEl = document.querySelector('.profile-name');
+            const initialsEl = document.getElementById('avatarInitials');
+            const displayName = user.displayName || user.email.split('@')[0];
+            if (nameEl) nameEl.textContent = displayName;
+            if (initialsEl) {
+                const parts = displayName.trim().split(' ');
+                initialsEl.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+            }
+        }
+    });
+
+    // ===== LOGOUT =====
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            firebase.auth().signOut().then(() => {
+                window.location.href = 'auth.html';
+            });
+        });
+    }
+
     initNavigation();
     initSparklines();
     initSubscriberChart();
@@ -745,7 +782,7 @@ function generateSmartResponse(question) {
         return `🔥 Trending opportunities for you:\n\n1. **AI-powered content** — 12.4K searches, growing fast\n2. **Couple prank videos** — 22.1K searches, your sweet spot\n3. **Supercar reviews 2025** — 15.3K searches, perfect for your car content\n4. **24-hour challenges** — 18.7K searches, proven format\n\nI'd recommend combining trends: "I Let AI Choose My 24-Hour Challenge" could go viral! 🚀`;
     }
 
-    return `Great question! Based on your Nexora channel analytics:\n\n- **Channel health:** Excellent — 12.4% monthly growth\n- **Content strategy:** Pranks and Cars are your strongest categories\n- **Key opportunity:** Increase Shorts output and TikTok cross-posting\n\nWould you like me to dive deeper into any specific area? I can analyze individual videos, suggest content ideas, or create a growth strategy! 💡`;
+    return `Great question! Based on your BlowUp channel analytics:\n\n- **Channel health:** Excellent — 12.4% monthly growth\n- **Content strategy:** Pranks and Cars are your strongest categories\n- **Key opportunity:** Increase Shorts output and TikTok cross-posting\n\nWould you like me to dive deeper into any specific area? I can analyze individual videos, suggest content ideas, or create a growth strategy! 💡`;
 }
 
 function formatMarkdown(text) {

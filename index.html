@@ -4,16 +4,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexora — YouTube Growth Dashboard</title>
+    <title>BlowUp — YouTube Growth Dashboard</title>
     <meta name="description"
-        content="Nexora — AI-powered YouTube growth analytics dashboard for creators. Track performance, analyze content, and get AI-driven content ideas.">
+        content="BlowUp — AI-powered YouTube growth analytics dashboard for creators. Track performance, analyze content, and get AI-driven content ideas.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
+    <!-- Firebase CDN (must load before auth gate) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="style.css">
+    <script>
+        // ===== FIREBASE AUTH GATE =====
+        const _fbConfig = {
+            apiKey: "AIzaSyAiL_kcASDLwBAyEs7-dE0pu_jdX_L4O8U",
+            authDomain: "blowup-90d12.firebaseapp.com",
+            projectId: "blowup-90d12",
+            storageBucket: "blowup-90d12.firebasestorage.app",
+            messagingSenderId: "864864813594",
+            appId: "1:864864813594:web:88bb93bb71e6deca05c7a3",
+            measurementId: "G-7DBJ30SKFJ"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(_fbConfig);
+        // Hide body until auth state confirmed — prevents flash of dashboard
+        document.documentElement.style.visibility = 'hidden';
+        firebase.auth().onAuthStateChanged(function (user) {
+            if (!user) {
+                window.location.replace('auth.html');
+            } else {
+                document.documentElement.style.visibility = 'visible';
+            }
+        });
+    </script>
 </head>
 
 <body>
@@ -21,7 +46,7 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
             <div class="logo-icon">
-                <img src="nexora-logo.jpg" alt="Nexora" class="nexora-logo-img">
+                <img src="blowup-logo.jpg" alt="BlowUp" class="blowup-logo-img">
             </div>
         </div>
         <nav class="sidebar-nav">
@@ -82,16 +107,19 @@
                     <span class="profile-handle">@GhostHlubi</span>
                 </div>
                 <div class="profile-avatar" id="profileAvatar">
-                    <span>GH</span>
+                    <span id="avatarInitials">GH</span>
                     <div class="avatar-badge">2</div>
                 </div>
+                <button class="logout-btn" id="logoutBtn" title="Log out">
+                    <i data-lucide="log-out" style="width:16px;height:16px"></i>
+                </button>
             </div>
         </header>
 
         <!-- ===== PAGE: OVERVIEW ===== -->
         <section class="page active" id="page-overview">
             <div class="page-header">
-                <h1 class="page-title">NEXORA</h1>
+                <h1 class="page-title">BLOWUP</h1>
                 <div class="page-filters">
                     <div class="filter-dropdown">
                         <span>Date:</span>
@@ -392,48 +420,295 @@
                         </div>
                     </div>
                     <div class="social-chart"><canvas id="igMiniChart"></canvas></div>
-                    <button class="social-action-btn connected-btn">View Analytics</button>
+                    <button class="social-action-btn connected-btn" data-page="instagram">View Analytics</button>
+                    <div class="social-card card-animate tiktok-card">
+                        <div class="social-card-header">
+                            <div class="social-icon-large tt">
+                                <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+                                    <path
+                                        d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V8.98a8.18 8.18 0 004.76 1.52V7.05a4.84 4.84 0 01-1-.36z" />
+                                </svg>
+                            </div>
+                            <div class="social-status connected"><i data-lucide="check-circle"
+                                    style="width:14px;height:14px"></i> Connected</div>
+                        </div>
+                        <h3>TikTok</h3>
+                        <div class="social-stats">
+                            <div class="social-stat">
+                                <span class="social-stat-value">2.2M</span>
+                                <span class="social-stat-label">Followers</span>
+                            </div>
+                            <div class="social-stat">
+                                <span class="social-stat-value">75.5M</span>
+                                <span class="social-stat-label">Likes</span>
+                            </div>
+                            <div class="social-stat">
+                                <span class="social-stat-value">4.8%</span>
+                                <span class="social-stat-label">Eng. Rate</span>
+                            </div>
+                        </div>
+                        <div class="social-chart"><canvas id="ttMiniChart"></canvas></div>
+                        <button class="social-action-btn connected-btn">View Analytics</button>
+                    </div>
+
+                    <!-- Cross-platform Chart -->
+                    <div class="chart-card card-animate" style="grid-column: 1 / -1;">
+                        <div class="card-header">
+                            <h2>CROSS-PLATFORM GROWTH</h2>
+                        </div>
+                        <div class="chart-container chart-tall">
+                            <canvas id="crossPlatformChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+        </section>
+
+        <!-- ===== PAGE: INSTAGRAM ANALYTICS ===== -->
+        <section class="page" id="page-instagram">
+            <div class="page-header">
+                <div class="page-title-row">
+                    <button class="back-btn" data-page="social">
+                        <i data-lucide="arrow-left" style="width:18px;height:18px"></i> Social Platforms
+                    </button>
+                    <h1 class="page-title"
+                        style="background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        INSTAGRAM ANALYTICS</h1>
+                </div>
+            </div>
+
+            <!-- KPI Row -->
+            <div class="platform-kpi-grid">
+                <div class="platform-kpi-card card-animate">
+                    <span class="platform-kpi-label">FOLLOWERS</span>
+                    <span class="platform-kpi-value">1.4M</span>
+                    <span class="platform-kpi-change positive">↑ +8.4% this month</span>
+                </div>
+                <div class="platform-kpi-card card-animate">
+                    <span class="platform-kpi-label">ENG. RATE</span>
+                    <span class="platform-kpi-value">3.2%</span>
+                    <span class="platform-kpi-change positive">↑ +0.4% vs avg</span>
+                </div>
+                <div class="platform-kpi-card card-animate">
+                    <span class="platform-kpi-label">TOTAL POSTS</span>
+                    <span class="platform-kpi-value">865</span>
+                    <span class="platform-kpi-change neutral">4.2 / week</span>
+                </div>
+                <div class="platform-kpi-card card-animate">
+                    <span class="platform-kpi-label">AVG REACH</span>
+                    <span class="platform-kpi-value">284K</span>
+                    <span class="platform-kpi-change positive">↑ +12.1% this month</span>
+                </div>
+                <div class="platform-kpi-card card-animate">
+                    <span class="platform-kpi-label">STORY VIEWS</span>
+                    <span class="platform-kpi-value">890K</span>
+                    <span class="platform-kpi-change positive">↑ +6.3% avg</span>
+                </div>
+                <div class="platform-kpi-card card-animate">
+                    <span class="platform-kpi-label">SAVES</span>
+                    <span class="platform-kpi-value">142K</span>
+                    <span class="platform-kpi-change positive">↑ High save rate</span>
+                </div>
+            </div>
+
+            <div class="platform-analytics-grid">
+                <!-- Follower Growth Chart -->
+                <div class="chart-card card-animate">
+                    <div class="card-header">
+                        <h2>FOLLOWER GROWTH</h2>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="igGrowthChart"></canvas>
+                    </div>
                 </div>
 
-                <!-- TikTok -->
-                <div class="social-card card-animate tiktok-card">
-                    <div class="social-card-header">
-                        <div class="social-icon-large tt">
-                            <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
-                                <path
-                                    d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V8.98a8.18 8.18 0 004.76 1.52V7.05a4.84 4.84 0 01-1-.36z" />
-                            </svg>
-                        </div>
-                        <div class="social-status connected"><i data-lucide="check-circle"
-                                style="width:14px;height:14px"></i> Connected</div>
+                <!-- Engagement by Content Type -->
+                <div class="chart-card card-animate">
+                    <div class="card-header">
+                        <h2>ENGAGEMENT BY CONTENT TYPE</h2>
                     </div>
-                    <h3>TikTok</h3>
-                    <div class="social-stats">
-                        <div class="social-stat">
-                            <span class="social-stat-value">2.2M</span>
-                            <span class="social-stat-label">Followers</span>
-                        </div>
-                        <div class="social-stat">
-                            <span class="social-stat-value">75.5M</span>
-                            <span class="social-stat-label">Likes</span>
-                        </div>
-                        <div class="social-stat">
-                            <span class="social-stat-value">4.8%</span>
-                            <span class="social-stat-label">Eng. Rate</span>
-                        </div>
+                    <div class="chart-container">
+                        <canvas id="igContentTypeChart"></canvas>
                     </div>
-                    <div class="social-chart"><canvas id="ttMiniChart"></canvas></div>
-                    <button class="social-action-btn connected-btn">View Analytics</button>
                 </div>
 
-                <!-- Cross-platform Chart -->
+                <!-- Top Posts Table -->
                 <div class="chart-card card-animate" style="grid-column: 1 / -1;">
                     <div class="card-header">
-                        <h2>CROSS-PLATFORM GROWTH</h2>
+                        <h2>TOP POSTS BY ENGAGEMENT</h2>
+                        <div class="table-search">
+                            <i data-lucide="search" style="width:16px;height:16px"></i>
+                            <input type="text" placeholder="Search posts..." id="igPostSearch">
+                        </div>
                     </div>
-                    <div class="chart-container chart-tall">
-                        <canvas id="crossPlatformChart"></canvas>
+                    <div class="video-table-wrapper">
+                        <table class="video-table" id="igPostTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Caption</th>
+                                    <th>Type</th>
+                                    <th>Likes</th>
+                                    <th>Comments</th>
+                                    <th>Saves</th>
+                                    <th>Reach</th>
+                                    <th>Eng. Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody><!-- Populated by JS --></tbody>
+                        </table>
                     </div>
+                </div>
+
+                <!-- Caption CTR Analysis -->
+                <div class="chart-card card-animate">
+                    <div class="card-header">
+                        <h2>CAPTION CTR ANALYSIS</h2>
+                        <span class="card-badge ig-badge">AI Insights</span>
+                    </div>
+                    <div class="caption-insights" id="igCaptionInsights"><!-- Populated by JS --></div>
+                </div>
+
+                <!-- Best Posting Times -->
+                <div class="chart-card card-animate">
+                    <div class="card-header">
+                        <h2>BEST POSTING TIMES</h2>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="igPostingTimesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Growth Recommendations -->
+                <div class="chart-card card-animate" style="grid-column: 1 / -1;">
+                    <div class="card-header">
+                        <h2>🤖 AI GROWTH RECOMMENDATIONS</h2>
+                        <span class="card-badge ig-badge">Instagram</span>
+                    </div>
+                    <div class="recommendations-grid" id="igRecommendations"><!-- Populated by JS --></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== PAGE: TIKTOK ANALYTICS ===== -->
+        <section class="page" id="page-tiktok">
+            <div class="page-header">
+                <div class="page-title-row">
+                    <button class="back-btn" data-page="social">
+                        <i data-lucide="arrow-left" style="width:18px;height:18px"></i> Social Platforms
+                    </button>
+                    <h1 class="page-title" style="color: #fff;">TIKTOK ANALYTICS</h1>
+                </div>
+            </div>
+
+            <!-- KPI Row -->
+            <div class="platform-kpi-grid">
+                <div class="platform-kpi-card card-animate">
+                    <span class="platform-kpi-label">FOLLOWERS</span>
+                    <span class="platform-kpi-value">2.2M</span>
+                    <span class="platform-kpi-change positive">↑ +14.2% this month</span>
+                </div>
+                <div class="platform-kpi-card card-animate">
+                    <span class="platform-kpi-label">TOTAL LIKES</span>
+                    <span class="platform-kpi-value">75.5M</span>
+                    <span class="platform-kpi-change positive">↑ +2.1M this month</span>
+                </div>
+                <div class="platform-kpi-card card-animate">
+                    <span class="platform-kpi-label">ENG. RATE</span>
+                    <span class="platform-kpi-value">4.8%</span>
+                    <span class="platform-kpi-change positive">↑ Above average</span>
+                </div>
+                <div class="platform-kpi-card card-animate">
+                    <span class="platform-kpi-label">AVG VIEWS</span>
+                    <span class="platform-kpi-value">1.2M</span>
+                    <span class="platform-kpi-change positive">↑ per video</span>
+                </div>
+                <div class="platform-kpi-card card-animate">
+                    <span class="platform-kpi-label">SHARES</span>
+                    <span class="platform-kpi-value">4.8M</span>
+                    <span class="platform-kpi-change positive">↑ Very high virality</span>
+                </div>
+                <div class="platform-kpi-card card-animate">
+                    <span class="platform-kpi-label">COMPLETION RATE</span>
+                    <span class="platform-kpi-value">68%</span>
+                    <span class="platform-kpi-change positive">↑ +5% vs last month</span>
+                </div>
+            </div>
+
+            <div class="platform-analytics-grid">
+                <!-- Follower Growth Chart -->
+                <div class="chart-card card-animate">
+                    <div class="card-header">
+                        <h2>FOLLOWER GROWTH</h2>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="ttGrowthChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Views vs Likes Chart -->
+                <div class="chart-card card-animate">
+                    <div class="card-header">
+                        <h2>VIEWS VS LIKES TREND</h2>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="ttViewsLikesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Top Videos Table -->
+                <div class="chart-card card-animate" style="grid-column: 1 / -1;">
+                    <div class="card-header">
+                        <h2>TOP VIDEOS BY ENGAGEMENT</h2>
+                        <div class="table-search">
+                            <i data-lucide="search" style="width:16px;height:16px"></i>
+                            <input type="text" placeholder="Search videos..." id="ttVideoSearch">
+                        </div>
+                    </div>
+                    <div class="video-table-wrapper">
+                        <table class="video-table" id="ttVideoTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Caption / Hook</th>
+                                    <th>Category</th>
+                                    <th>Views</th>
+                                    <th>Likes</th>
+                                    <th>Shares</th>
+                                    <th>Comments</th>
+                                    <th>Completion</th>
+                                </tr>
+                            </thead>
+                            <tbody><!-- Populated by JS --></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Caption Hook Analysis -->
+                <div class="chart-card card-animate">
+                    <div class="card-header">
+                        <h2>HOOK PERFORMANCE ANALYSIS</h2>
+                        <span class="card-badge tt-badge">AI Insights</span>
+                    </div>
+                    <div class="caption-insights" id="ttCaptionInsights"><!-- Populated by JS --></div>
+                </div>
+
+                <!-- Content Category Performance -->
+                <div class="chart-card card-animate">
+                    <div class="card-header">
+                        <h2>CONTENT CATEGORY PERFORMANCE</h2>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="ttCategoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- AI Growth Recommendations -->
+                <div class="chart-card card-animate" style="grid-column: 1 / -1;">
+                    <div class="card-header">
+                        <h2>🤖 AI GROWTH RECOMMENDATIONS</h2>
+                        <span class="card-badge tt-badge">TikTok</span>
+                    </div>
+                    <div class="recommendations-grid" id="ttRecommendations"><!-- Populated by JS --></div>
                 </div>
             </div>
         </section>
@@ -496,7 +771,7 @@
         <div class="chatbox-header">
             <div class="chatbox-title">
                 <i data-lucide="sparkles" style="width:20px;height:20px;color:#8AE65C"></i>
-                <span>Nexora AI Assistant</span>
+                <span>BlowUp AI Assistant</span>
             </div>
             <button class="chatbox-close" id="chatboxClose">
                 <i data-lucide="x" style="width:20px;height:20px"></i>
@@ -508,7 +783,7 @@
                     <i data-lucide="bot" style="width:18px;height:18px"></i>
                 </div>
                 <div class="chat-bubble">
-                    Hey Ghost! 👋 I'm your Nexora AI assistant. I can help you with:
+                    Hey Ghost! 👋 I'm your BlowUp AI assistant. I can help you with:
                     <ul>
                         <li>📊 Analyzing your video performance</li>
                         <li>💡 Generating new video ideas</li>
@@ -526,7 +801,7 @@
             <button class="suggestion-chip" data-q="Analyze my content mix">📊 Content analysis</button>
         </div>
         <div class="chatbox-input">
-            <input type="text" placeholder="Ask Nexora AI anything..." id="chatInput">
+            <input type="text" placeholder="Ask BlowUp AI anything..." id="chatInput">
             <button class="chat-send" id="chatSend">
                 <i data-lucide="send" style="width:18px;height:18px"></i>
             </button>
