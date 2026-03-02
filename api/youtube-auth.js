@@ -6,17 +6,20 @@ export default function handler(req, res) {
     const { uid } = req.query;
     if (!uid) return res.status(400).send('Missing uid parameter');
 
+    // APP_URL is preferred — must match exactly what's in Google Cloud Console authorized redirect URIs
+    const appUrl = process.env.APP_URL || `https://${process.env.VERCEL_URL}`;
+
     const params = new URLSearchParams({
         client_id: process.env.YOUTUBE_CLIENT_ID,
-        redirect_uri: `${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : process.env.APP_URL}/api/youtube-callback`,
+        redirect_uri: `${appUrl}/api/youtube-callback`,
         response_type: 'code',
         scope: [
             'https://www.googleapis.com/auth/youtube.readonly',
             'https://www.googleapis.com/auth/yt-analytics.readonly',
         ].join(' '),
-        access_type: 'offline',   // gets refresh token
-        prompt: 'consent',        // always show consent (needed to get refresh_token)
-        state: uid,               // pass uid through OAuth state param
+        access_type: 'offline',
+        prompt: 'consent',
+        state: uid,
     });
 
     res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
