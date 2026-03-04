@@ -260,7 +260,10 @@ document.addEventListener('DOMContentLoaded', () => {
 window.connectYouTube = function () {
     const uid = window._blowupUid;
     if (!uid) { alert('Please wait — loading your account...'); return; }
-    window.location.href = `/api/youtube-auth?uid=${uid}`;
+    // Pass the browser's own origin so the serverless function builds
+    // the redirect_uri from the real URL (not an env var that may differ)
+    const origin = encodeURIComponent(window.location.origin);
+    window.location.href = `/api/youtube-auth?uid=${uid}&origin=${origin}`;
 };
 
 // ===== PAGE GATE — locks Videos + AI Studio until YouTube is connected =====

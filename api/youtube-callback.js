@@ -5,8 +5,22 @@
 import { getDb } from './_firebase.js';
 
 export default async function handler(req, res) {
-    const { code, state: uid, error } = req.query;
-    const appUrl = process.env.APP_URL || `https://${process.env.VERCEL_URL}`;
+    const { code, state: rawState, error } = req.query;
+
+    // Recover uid + appUrl from base64-encoded state
+    let uid, appUrl;
+    try {
+        const decoded = JSON.parse(Buffer.from(rawState || '', 'base64').toString());
+        uid = decoded.uid;
+        appUrl = decoded.appUrl;
+    } catch {
+        // Fallback: state was plain uid (old format)
+        uid = rawState;
+        appUrl = process.env.APP_URL || `https://${process.env.VERCEL_URL}`;
+    }
+
+    // Derive redirectUri from the same appUrl used during auth
+    const redirectUri = `${appUrl}/api/youtube-callback`;
 
     if (error) return res.redirect(`${appUrl}/dashboard.html?error=youtube_denied`);
     if (!code || !uid) return res.status(400).send('Missing code or uid');
@@ -20,7 +34,7 @@ export default async function handler(req, res) {
                 code,
                 client_id: process.env.YOUTUBE_CLIENT_ID,
                 client_secret: process.env.YOUTUBE_CLIENT_SECRET,
-                redirect_uri: `${appUrl}/api/youtube-callback`,
+                redirect_uri: redirectUri,   // ← exact same URI as was sent to Google
                 grant_type: 'authorization_code',
             }),
         });
@@ -59,7 +73,7 @@ export default async function handler(req, res) {
 
         res.redirect(`${appUrl}/dashboard.html?connected=youtube`);
     } catch (err) {
-        console.error('YouTube callback error:', err);
+        console.error('YouTube callback error:', err.message);
         res.redirect(`${appUrl}/dashboard.html?error=youtube_failed`);
     }
 }
